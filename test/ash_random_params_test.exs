@@ -148,7 +148,7 @@ defmodule AshRandomParamsTest do
                |> Ash.run_action!()
     end
 
-    test "with populate" do
+    test "with enforce_random" do
       assert %{
                author_id: nil,
                req_str: "req_str-" <> _,
@@ -161,13 +161,13 @@ defmodule AshRandomParamsTest do
                  :random_params,
                  %{
                    action: :create,
-                   populate: [:opt_str]
+                   enforce_random: [:opt_str]
                  }
                )
                |> Ash.run_action!()
     end
 
-    test "with omit" do
+    test "with exclude" do
       assert %{
                author_id: nil,
                opt_str: nil,
@@ -180,7 +180,7 @@ defmodule AshRandomParamsTest do
                  :random_params,
                  %{
                    action: :create,
-                   omit: [:req_str]
+                   exclude: [:req_str]
                  }
                )
                |> Ash.run_action!()
@@ -239,7 +239,7 @@ defmodule AshRandomParamsTest do
              Post.random_params!(
                :create,
                %{opt_int: 456},
-               %{populate: [:opt_int]}
+               %{enforce_random: [:opt_int]}
              )
   end
 end
