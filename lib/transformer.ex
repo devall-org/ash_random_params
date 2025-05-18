@@ -13,14 +13,14 @@ defmodule AshRandomParams.Transformer do
   def add_random_params(dsl_state) do
     action = Builder.build_action_argument(:action, :atom, default: :create)
     init_params = Builder.build_action_argument(:init_params, :map, default: %{})
-    populate = Builder.build_action_argument(:populate, {:array, :atom}, default: [])
-    omit = Builder.build_action_argument(:omit, {:array, :atom}, default: [])
+    enforce_random = Builder.build_action_argument(:enforce_random, {:array, :atom}, default: [])
+    exclude = Builder.build_action_argument(:exclude, {:array, :atom}, default: [])
     include_defaults? = Builder.build_action_argument(:include_defaults?, :boolean, default: true)
 
     dsl_state
     |> Builder.add_action(:action, :random_params,
       returns: :map,
-      arguments: [action, init_params, omit, populate, include_defaults?],
+      arguments: [action, init_params, exclude, enforce_random, include_defaults?],
       run: &__MODULE__.do_random_params/2
     )
     |> Builder.add_interface(:random_params, args: [:action, {:optional, :init_params}])
@@ -44,8 +44,8 @@ defmodule AshRandomParams.Transformer do
           arguments: %{
             action: action,
             init_params: init_params,
-            omit: omit,
-            populate: populate,
+            exclude: exclude,
+            enforce_random: enforce_random,
             include_defaults?: include_defaults?
           }
         } =
@@ -86,7 +86,7 @@ defmodule AshRandomParams.Transformer do
             |> Enum.reject(&(&1.name in belongs_to_attrs))
           end
         end)
-        |> Enum.reject(&(&1.name in omit))
+        |> Enum.reject(&(&1.name in exclude))
         |> Enum.reject(&(&1.name in init_keys))
         |> Map.new(fn %{name: name, default: default} ->
           value =
@@ -109,16 +109,16 @@ defmodule AshRandomParams.Transformer do
         {random_mod, random_opts} =
           random = AshRandomParams.Info.random_params_random!(input.resource)
 
-        fields_by_omit =
+        fields_by_exclude =
           candidates
           |> Enum.reject(&(&1.name in rel_names))
           |> Enum.reject(&(&1.name in belongs_to_attrs))
-          |> Enum.reject(&(&1.name in omit))
+          |> Enum.reject(&(&1.name in exclude))
           |> Enum.reject(&(&1.allow_nil? || &1.default != nil))
 
-        fields_by_fill = candidates |> Enum.filter(&(&1.name in populate))
+        fields_by_fill = candidates |> Enum.filter(&(&1.name in enforce_random))
 
-        (fields_by_omit ++ fields_by_fill)
+        (fields_by_exclude ++ fields_by_fill)
         |> Enum.reject(&(&1.name in init_keys))
         |> Map.new(fn %{name: name, default: default} = attr_or_arg ->
           value =

@@ -37,8 +37,8 @@ Post.random_params!(:create, %{author: "James"})
 
 # With options
 Post.random_params!(:create, %{author: "James"}, %{
-  populate: [:content],   
-  omit: [:title],   
+  enforce_random: [:content],   
+  exclude: [:title],   
   include_defaults?: false
 })
 => %{author: "James", content: "content-38128"}
@@ -55,13 +55,13 @@ For accepts and arguments that match the `name` or `source_attribute` of a `belo
 - In other actions, they are not generated at all
 
 This behavior exists because:
-- In `create` actions, omitting a value is equivalent to setting it to `nil`
-- In `update` actions, omitting a value preserves the existing relationship, while explicitly setting it to `nil` removes the relationship
+- In `create` actions, excluding a value is equivalent to setting it to `nil`
+- In `update` actions, excluding a value preserves the existing relationship, while explicitly setting it to `nil` removes the relationship
 
 ### Options
 
-- `populate`: Forces generation of random values for specified accepts/arguments, overriding the default behavior
-- `omit`: Prevents generation of random values for specified accepts/arguments, overriding the default behavior
+- `enforce_random`: Forces generation of random values for specified accepts/arguments, overriding the default behavior
+- `exclude`: Prevents generation of random values for specified accepts/arguments, overriding the default behavior
 - `include_defaults?`: When set to `true`, includes default values for accepts/arguments that have either `allow_nil?: true` or a non-nil default value. Defaults to `true`. In the example above, this would add `%{content: nil, tag: "JS"}` to the generated params.
 
 ### Custom Random Generator
@@ -98,7 +98,7 @@ Add `ash_random_params` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ash_random_params, "~> 0.1.0"}
+    {:ash_random_params, "~> 0.2.0"}
   ]
 end
 ```
