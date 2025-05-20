@@ -41,12 +41,25 @@ defmodule AshRandomParams.DefaultRandom do
   def random(%{type: Ash.Type.CiString, name: name}, _opts, _context),
     do: "#{name}-#{random_int()}"
 
-  def random(%{name: name, type: type} = attr_or_arg, opts, context) do
-    {attr_or_arg, opts, context} |> dbg()
-    raise "Cannot make random value for name: #{name}, type: #{type}"
+  def random(%{type: type} = attr_or_arg, opts, context) do
+    if function_exported?(type, :ash_type?, 0) and type.ash_type?() do
+      if function_exported?(type, :values, 0) and is_list(type.values()) do
+        # Ash.Type.Enum case
+        type.values() |> Enum.random()
+      else
+        handle_unknown(attr_or_arg, opts, context)
+      end
+    else
+      handle_unknown(attr_or_arg, opts, context)
+    end
   end
 
   # Private
+
+  defp handle_unknown(%{name: name, type: type} = attr_or_arg, opts, context) do
+    {attr_or_arg, opts, context} |> dbg()
+    raise "Cannot make random value for name: #{name}, type: #{type}"
+  end
 
   @year_seconds 365 * 24 * 60 * 60
 
