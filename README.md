@@ -98,7 +98,7 @@ Add `ash_random_params` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ash_random_params, "~> 0.2.0"}
+    {:ash_random_params, "~> 0.2.1"}
   ]
 end
 ```
