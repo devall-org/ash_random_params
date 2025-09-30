@@ -43,11 +43,16 @@ defmodule AshRandomParams.DefaultRandom do
 
   def random(%{type: type} = attr_or_arg, opts, context) do
     if function_exported?(type, :ash_type?, 0) and type.ash_type?() do
-      if function_exported?(type, :values, 0) and is_list(type.values()) do
-        # Ash.Type.Enum case
-        type.values() |> Enum.random()
-      else
-        handle_unknown(attr_or_arg, opts, context)
+      cond do
+        function_exported?(type, :values, 0) and is_list(type.values()) ->
+          # Ash.Type.Enum case
+          type.values() |> Enum.random()
+
+        function_exported?(type, :value_fun, 0) and is_function(type.value_fun(), 0) ->
+          type.value_fun().()
+
+        true ->
+          handle_unknown(attr_or_arg, opts, context)
       end
     else
       handle_unknown(attr_or_arg, opts, context)
